@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "Protos/V1/Models/SystemModels.proto";
+
+package daisi.protos.v1;
+
+message GetHostsRequest{
+    PagingInfo Paging = 1;
+}
+
+message GetHostsResponse{
+    repeated Host Hosts = 1;
+    int32 TotalCount = 2;
+}
+
+message UpdateHostRequest{
+    Host Host = 1;
+}
+message UpdateHostResponse{
+    bool Success = 1;
+    string Message = 2;
+}
+
+message RegisterHostRequest{
+    Host Host = 1;
+}
+message RegisterHostResponse{
+    string SecretKey = 1;
+    string HostId = 2;
+}
+message GetSecretKeyRequest{
+    string HostId = 1;
+}
+message GetSecretKeyResponse{
+    string SecretKey = 1;
+}
+message ArchiveHostRequest{
+    string HostId = 1;
+}
+message ArchiveHostResponse{
+    bool Success = 1;
+}
+message GetHostStatsRequest{
+    string HostId = 1;
+    Timeframe Timeframe = 2;
+    google.protobuf.Timestamp Date = 3;
+}
+message GetHostStatsResponse{
+    repeated HostStat Stats = 1;
+}
+
+message Host {
+    string Id = 1;
+    string Name = 2;    
+    optional  google.protobuf.StringValue IpAddress = 3;
+    int32 Port = 4;
+    optional google.protobuf.Timestamp DateStarted = 5;
+    optional google.protobuf.Timestamp DateStopped = 6;
+    optional google.protobuf.Timestamp DateLastHeartbeat = 7;
+    optional google.protobuf.Timestamp DateLastSession = 8;
+    optional google.protobuf.StringValue OperatingSystem = 9;
+    optional google.protobuf.StringValue OperatingSystemVersion = 10;
+    HostStatus Status = 11;
+    string Region = 12;
+    bool DirectConnect = 13;
+    bool PeerConnect = 14;
+    optional google.protobuf.StringValue AppVersion = 15;
+    optional google.protobuf.StringValue ReleaseGroup = 16;
+}
+message HostStat {
+    string HostId = 1;
+    string NetworkId = 2;
+    int64 TokenCount = 3;
+    int64 SecondsProcessingTokens = 4;
+    Timeframe Timeframe = 5;
+    google.protobuf.Timestamp Date = 6;
+    optional int32 Part = 7;
+}
+
+
+enum HostStatus {
+    Unknown = 0;
+    Online = 1;
+    Offline = 2;
+    Maintenance = 3;
+    Archived = 4;
+}
+
+message DriveSettings {
+    string DrivePath = 1;
+    int64 MaxDriveStorageBytes = 2;
+    bool VectorDbEnabled = 3;
+    int32 MaxVectorDbAccounts = 4;
+}

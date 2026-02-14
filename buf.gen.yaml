@@ -1,0 +1,16 @@
+version: v2
+plugins:
+  - local:
+      - cmd.exe
+      - /C
+      - node node_modules/ts-proto/protoc-gen-ts_proto
+    out: src/generated
+    opt:
+      - outputServices=nice-grpc,outputServices=generic-definitions
+      - esModuleInterop=true
+      - useOptionals=messages
+      - snakeToCamel=true
+      - forceLong=long
+      - env=both
+inputs:
+  - directory: protos

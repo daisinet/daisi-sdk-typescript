@@ -1,0 +1,14 @@
+{
+  "name": "daisi-example-browser-chat",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@daisi/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

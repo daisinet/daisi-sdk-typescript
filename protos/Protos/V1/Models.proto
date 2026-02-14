@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "Protos/V1/Models/ModelModels.proto";
+
+package daisi.protos.v1;
+
+service ModelsProto {
+    rpc GetRequiredModels(GetRequiredModelsRequest) returns (GetRequiredModelsResponse);
+    rpc CreateModel(CreateModelRequest) returns (CreateModelResponse);
+    rpc GetModel(GetModelRequest) returns (GetModelResponse);
+    rpc GetAllModels(GetAllModelsRequest) returns (GetAllModelsResponse);
+    rpc UpdateModel(UpdateModelRequest) returns (UpdateModelResponse);
+    rpc DeleteModel(DeleteModelRequest) returns (DeleteModelResponse);
+}
