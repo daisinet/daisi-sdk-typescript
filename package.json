@@ -5,17 +5,17 @@
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
     "./web": {
       "types": "./dist/web.d.ts",
-      "import": "./dist/web.mjs",
+      "import": "./dist/web.js",
       "require": "./dist/web.js"
     }
   },
