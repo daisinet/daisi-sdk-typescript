@@ -9,7 +9,7 @@ import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import Long from "long";
 import { Any } from "../../../google/protobuf/any";
 import { StringValue } from "../../../google/protobuf/wrappers";
-import { Settings } from "./SettingsModels";
+import { AIModel, Settings } from "./SettingsModels";
 
 export const protobufPackage = "daisi.protos.v1";
 
@@ -86,6 +86,92 @@ export interface PeerShardTransferRequest {
   ShardId: string;
   TargetHostIp: string;
   TargetHostPort: number;
+}
+
+export interface ExecuteToolRequest {
+  ToolId: string;
+  Parameters: ToolParam[];
+  RequestingHostId: string;
+  SessionId: string;
+  RequestId: string;
+}
+
+export interface ToolParam {
+  Name: string;
+  Value: string;
+}
+
+export interface ExecuteToolResponse {
+  Success: boolean;
+  Output: string;
+  ErrorMessage: string;
+  OutputMessage: string;
+  OutputFormat: string;
+}
+
+export interface DownloadModelRequest {
+  Model?: AIModel | undefined;
+}
+
+export interface DownloadModelResponse {
+  Success: boolean;
+  ErrorMessage: string;
+}
+
+export interface RemoveModelRequest {
+  ModelId: string;
+  ModelName: string;
+  FileName: string;
+}
+
+export interface RemoveModelResponse {
+  Success: boolean;
+  ErrorMessage: string;
+}
+
+/** MCP Sync commands (sent from ORC to Host) */
+export interface McpSyncRequest {
+  AccountId: string;
+  ServerId: string;
+  ServerUrl: string;
+  AuthType: string;
+  AuthSecret: string;
+  RepositoryId: string;
+  CreatedByUserId: string;
+  EnabledResources: McpEnabledResource[];
+}
+
+export interface McpEnabledResource {
+  Uri: string;
+  Name: string;
+  MimeType: string;
+}
+
+export interface McpSyncResponse {
+  ServerId: string;
+  Success: boolean;
+  Error: string;
+  ResourcesSynced: number;
+  DiscoveredResources: McpSyncDiscoveredResource[];
+}
+
+export interface McpSyncDiscoveredResource {
+  Uri: string;
+  Name: string;
+  MimeType: string;
+  Description: string;
+}
+
+/** Browser-compatible command RPCs */
+export interface ListenForCommandsRequest {
+}
+
+export interface SendCommandRequest {
+  Command?: Command | undefined;
+}
+
+export interface SendCommandResponse {
+  Success: boolean;
 }
 
 function createBaseCommand(): Command {
@@ -1231,6 +1317,1307 @@ export const PeerShardTransferRequest: MessageFns<PeerShardTransferRequest> = {
     message.ShardId = object.ShardId ?? "";
     message.TargetHostIp = object.TargetHostIp ?? "";
     message.TargetHostPort = object.TargetHostPort ?? 0;
+    return message;
+  },
+};
+
+function createBaseExecuteToolRequest(): ExecuteToolRequest {
+  return { ToolId: "", Parameters: [], RequestingHostId: "", SessionId: "", RequestId: "" };
+}
+
+export const ExecuteToolRequest: MessageFns<ExecuteToolRequest> = {
+  encode(message: ExecuteToolRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ToolId !== "") {
+      writer.uint32(10).string(message.ToolId);
+    }
+    for (const v of message.Parameters) {
+      ToolParam.encode(v!, writer.uint32(18).fork()).join();
+    }
+    if (message.RequestingHostId !== "") {
+      writer.uint32(26).string(message.RequestingHostId);
+    }
+    if (message.SessionId !== "") {
+      writer.uint32(34).string(message.SessionId);
+    }
+    if (message.RequestId !== "") {
+      writer.uint32(42).string(message.RequestId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ExecuteToolRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseExecuteToolRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ToolId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.Parameters.push(ToolParam.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.RequestingHostId = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.SessionId = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.RequestId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ExecuteToolRequest {
+    return {
+      ToolId: isSet(object.ToolId) ? globalThis.String(object.ToolId) : "",
+      Parameters: globalThis.Array.isArray(object?.Parameters)
+        ? object.Parameters.map((e: any) => ToolParam.fromJSON(e))
+        : [],
+      RequestingHostId: isSet(object.RequestingHostId) ? globalThis.String(object.RequestingHostId) : "",
+      SessionId: isSet(object.SessionId) ? globalThis.String(object.SessionId) : "",
+      RequestId: isSet(object.RequestId) ? globalThis.String(object.RequestId) : "",
+    };
+  },
+
+  toJSON(message: ExecuteToolRequest): unknown {
+    const obj: any = {};
+    if (message.ToolId !== "") {
+      obj.ToolId = message.ToolId;
+    }
+    if (message.Parameters?.length) {
+      obj.Parameters = message.Parameters.map((e) => ToolParam.toJSON(e));
+    }
+    if (message.RequestingHostId !== "") {
+      obj.RequestingHostId = message.RequestingHostId;
+    }
+    if (message.SessionId !== "") {
+      obj.SessionId = message.SessionId;
+    }
+    if (message.RequestId !== "") {
+      obj.RequestId = message.RequestId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ExecuteToolRequest>, I>>(base?: I): ExecuteToolRequest {
+    return ExecuteToolRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ExecuteToolRequest>, I>>(object: I): ExecuteToolRequest {
+    const message = createBaseExecuteToolRequest();
+    message.ToolId = object.ToolId ?? "";
+    message.Parameters = object.Parameters?.map((e) => ToolParam.fromPartial(e)) || [];
+    message.RequestingHostId = object.RequestingHostId ?? "";
+    message.SessionId = object.SessionId ?? "";
+    message.RequestId = object.RequestId ?? "";
+    return message;
+  },
+};
+
+function createBaseToolParam(): ToolParam {
+  return { Name: "", Value: "" };
+}
+
+export const ToolParam: MessageFns<ToolParam> = {
+  encode(message: ToolParam, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.Name !== "") {
+      writer.uint32(10).string(message.Name);
+    }
+    if (message.Value !== "") {
+      writer.uint32(18).string(message.Value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ToolParam {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseToolParam();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.Name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.Value = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ToolParam {
+    return {
+      Name: isSet(object.Name) ? globalThis.String(object.Name) : "",
+      Value: isSet(object.Value) ? globalThis.String(object.Value) : "",
+    };
+  },
+
+  toJSON(message: ToolParam): unknown {
+    const obj: any = {};
+    if (message.Name !== "") {
+      obj.Name = message.Name;
+    }
+    if (message.Value !== "") {
+      obj.Value = message.Value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ToolParam>, I>>(base?: I): ToolParam {
+    return ToolParam.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ToolParam>, I>>(object: I): ToolParam {
+    const message = createBaseToolParam();
+    message.Name = object.Name ?? "";
+    message.Value = object.Value ?? "";
+    return message;
+  },
+};
+
+function createBaseExecuteToolResponse(): ExecuteToolResponse {
+  return { Success: false, Output: "", ErrorMessage: "", OutputMessage: "", OutputFormat: "" };
+}
+
+export const ExecuteToolResponse: MessageFns<ExecuteToolResponse> = {
+  encode(message: ExecuteToolResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.Success !== false) {
+      writer.uint32(8).bool(message.Success);
+    }
+    if (message.Output !== "") {
+      writer.uint32(18).string(message.Output);
+    }
+    if (message.ErrorMessage !== "") {
+      writer.uint32(26).string(message.ErrorMessage);
+    }
+    if (message.OutputMessage !== "") {
+      writer.uint32(34).string(message.OutputMessage);
+    }
+    if (message.OutputFormat !== "") {
+      writer.uint32(42).string(message.OutputFormat);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ExecuteToolResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseExecuteToolResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.Success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.Output = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.ErrorMessage = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.OutputMessage = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.OutputFormat = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ExecuteToolResponse {
+    return {
+      Success: isSet(object.Success) ? globalThis.Boolean(object.Success) : false,
+      Output: isSet(object.Output) ? globalThis.String(object.Output) : "",
+      ErrorMessage: isSet(object.ErrorMessage) ? globalThis.String(object.ErrorMessage) : "",
+      OutputMessage: isSet(object.OutputMessage) ? globalThis.String(object.OutputMessage) : "",
+      OutputFormat: isSet(object.OutputFormat) ? globalThis.String(object.OutputFormat) : "",
+    };
+  },
+
+  toJSON(message: ExecuteToolResponse): unknown {
+    const obj: any = {};
+    if (message.Success !== false) {
+      obj.Success = message.Success;
+    }
+    if (message.Output !== "") {
+      obj.Output = message.Output;
+    }
+    if (message.ErrorMessage !== "") {
+      obj.ErrorMessage = message.ErrorMessage;
+    }
+    if (message.OutputMessage !== "") {
+      obj.OutputMessage = message.OutputMessage;
+    }
+    if (message.OutputFormat !== "") {
+      obj.OutputFormat = message.OutputFormat;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ExecuteToolResponse>, I>>(base?: I): ExecuteToolResponse {
+    return ExecuteToolResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ExecuteToolResponse>, I>>(object: I): ExecuteToolResponse {
+    const message = createBaseExecuteToolResponse();
+    message.Success = object.Success ?? false;
+    message.Output = object.Output ?? "";
+    message.ErrorMessage = object.ErrorMessage ?? "";
+    message.OutputMessage = object.OutputMessage ?? "";
+    message.OutputFormat = object.OutputFormat ?? "";
+    return message;
+  },
+};
+
+function createBaseDownloadModelRequest(): DownloadModelRequest {
+  return { Model: undefined };
+}
+
+export const DownloadModelRequest: MessageFns<DownloadModelRequest> = {
+  encode(message: DownloadModelRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.Model !== undefined) {
+      AIModel.encode(message.Model, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DownloadModelRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDownloadModelRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.Model = AIModel.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DownloadModelRequest {
+    return { Model: isSet(object.Model) ? AIModel.fromJSON(object.Model) : undefined };
+  },
+
+  toJSON(message: DownloadModelRequest): unknown {
+    const obj: any = {};
+    if (message.Model !== undefined) {
+      obj.Model = AIModel.toJSON(message.Model);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DownloadModelRequest>, I>>(base?: I): DownloadModelRequest {
+    return DownloadModelRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DownloadModelRequest>, I>>(object: I): DownloadModelRequest {
+    const message = createBaseDownloadModelRequest();
+    message.Model = (object.Model !== undefined && object.Model !== null)
+      ? AIModel.fromPartial(object.Model)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDownloadModelResponse(): DownloadModelResponse {
+  return { Success: false, ErrorMessage: "" };
+}
+
+export const DownloadModelResponse: MessageFns<DownloadModelResponse> = {
+  encode(message: DownloadModelResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.Success !== false) {
+      writer.uint32(8).bool(message.Success);
+    }
+    if (message.ErrorMessage !== "") {
+      writer.uint32(18).string(message.ErrorMessage);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DownloadModelResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDownloadModelResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.Success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.ErrorMessage = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DownloadModelResponse {
+    return {
+      Success: isSet(object.Success) ? globalThis.Boolean(object.Success) : false,
+      ErrorMessage: isSet(object.ErrorMessage) ? globalThis.String(object.ErrorMessage) : "",
+    };
+  },
+
+  toJSON(message: DownloadModelResponse): unknown {
+    const obj: any = {};
+    if (message.Success !== false) {
+      obj.Success = message.Success;
+    }
+    if (message.ErrorMessage !== "") {
+      obj.ErrorMessage = message.ErrorMessage;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DownloadModelResponse>, I>>(base?: I): DownloadModelResponse {
+    return DownloadModelResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DownloadModelResponse>, I>>(object: I): DownloadModelResponse {
+    const message = createBaseDownloadModelResponse();
+    message.Success = object.Success ?? false;
+    message.ErrorMessage = object.ErrorMessage ?? "";
+    return message;
+  },
+};
+
+function createBaseRemoveModelRequest(): RemoveModelRequest {
+  return { ModelId: "", ModelName: "", FileName: "" };
+}
+
+export const RemoveModelRequest: MessageFns<RemoveModelRequest> = {
+  encode(message: RemoveModelRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ModelId !== "") {
+      writer.uint32(10).string(message.ModelId);
+    }
+    if (message.ModelName !== "") {
+      writer.uint32(18).string(message.ModelName);
+    }
+    if (message.FileName !== "") {
+      writer.uint32(26).string(message.FileName);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RemoveModelRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRemoveModelRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ModelId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.ModelName = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.FileName = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RemoveModelRequest {
+    return {
+      ModelId: isSet(object.ModelId) ? globalThis.String(object.ModelId) : "",
+      ModelName: isSet(object.ModelName) ? globalThis.String(object.ModelName) : "",
+      FileName: isSet(object.FileName) ? globalThis.String(object.FileName) : "",
+    };
+  },
+
+  toJSON(message: RemoveModelRequest): unknown {
+    const obj: any = {};
+    if (message.ModelId !== "") {
+      obj.ModelId = message.ModelId;
+    }
+    if (message.ModelName !== "") {
+      obj.ModelName = message.ModelName;
+    }
+    if (message.FileName !== "") {
+      obj.FileName = message.FileName;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RemoveModelRequest>, I>>(base?: I): RemoveModelRequest {
+    return RemoveModelRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RemoveModelRequest>, I>>(object: I): RemoveModelRequest {
+    const message = createBaseRemoveModelRequest();
+    message.ModelId = object.ModelId ?? "";
+    message.ModelName = object.ModelName ?? "";
+    message.FileName = object.FileName ?? "";
+    return message;
+  },
+};
+
+function createBaseRemoveModelResponse(): RemoveModelResponse {
+  return { Success: false, ErrorMessage: "" };
+}
+
+export const RemoveModelResponse: MessageFns<RemoveModelResponse> = {
+  encode(message: RemoveModelResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.Success !== false) {
+      writer.uint32(8).bool(message.Success);
+    }
+    if (message.ErrorMessage !== "") {
+      writer.uint32(18).string(message.ErrorMessage);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RemoveModelResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRemoveModelResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.Success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.ErrorMessage = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RemoveModelResponse {
+    return {
+      Success: isSet(object.Success) ? globalThis.Boolean(object.Success) : false,
+      ErrorMessage: isSet(object.ErrorMessage) ? globalThis.String(object.ErrorMessage) : "",
+    };
+  },
+
+  toJSON(message: RemoveModelResponse): unknown {
+    const obj: any = {};
+    if (message.Success !== false) {
+      obj.Success = message.Success;
+    }
+    if (message.ErrorMessage !== "") {
+      obj.ErrorMessage = message.ErrorMessage;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RemoveModelResponse>, I>>(base?: I): RemoveModelResponse {
+    return RemoveModelResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RemoveModelResponse>, I>>(object: I): RemoveModelResponse {
+    const message = createBaseRemoveModelResponse();
+    message.Success = object.Success ?? false;
+    message.ErrorMessage = object.ErrorMessage ?? "";
+    return message;
+  },
+};
+
+function createBaseMcpSyncRequest(): McpSyncRequest {
+  return {
+    AccountId: "",
+    ServerId: "",
+    ServerUrl: "",
+    AuthType: "",
+    AuthSecret: "",
+    RepositoryId: "",
+    CreatedByUserId: "",
+    EnabledResources: [],
+  };
+}
+
+export const McpSyncRequest: MessageFns<McpSyncRequest> = {
+  encode(message: McpSyncRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.AccountId !== "") {
+      writer.uint32(10).string(message.AccountId);
+    }
+    if (message.ServerId !== "") {
+      writer.uint32(18).string(message.ServerId);
+    }
+    if (message.ServerUrl !== "") {
+      writer.uint32(26).string(message.ServerUrl);
+    }
+    if (message.AuthType !== "") {
+      writer.uint32(34).string(message.AuthType);
+    }
+    if (message.AuthSecret !== "") {
+      writer.uint32(42).string(message.AuthSecret);
+    }
+    if (message.RepositoryId !== "") {
+      writer.uint32(50).string(message.RepositoryId);
+    }
+    if (message.CreatedByUserId !== "") {
+      writer.uint32(58).string(message.CreatedByUserId);
+    }
+    for (const v of message.EnabledResources) {
+      McpEnabledResource.encode(v!, writer.uint32(66).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): McpSyncRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMcpSyncRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.AccountId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.ServerId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.ServerUrl = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.AuthType = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.AuthSecret = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.RepositoryId = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.CreatedByUserId = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.EnabledResources.push(McpEnabledResource.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): McpSyncRequest {
+    return {
+      AccountId: isSet(object.AccountId) ? globalThis.String(object.AccountId) : "",
+      ServerId: isSet(object.ServerId) ? globalThis.String(object.ServerId) : "",
+      ServerUrl: isSet(object.ServerUrl) ? globalThis.String(object.ServerUrl) : "",
+      AuthType: isSet(object.AuthType) ? globalThis.String(object.AuthType) : "",
+      AuthSecret: isSet(object.AuthSecret) ? globalThis.String(object.AuthSecret) : "",
+      RepositoryId: isSet(object.RepositoryId) ? globalThis.String(object.RepositoryId) : "",
+      CreatedByUserId: isSet(object.CreatedByUserId) ? globalThis.String(object.CreatedByUserId) : "",
+      EnabledResources: globalThis.Array.isArray(object?.EnabledResources)
+        ? object.EnabledResources.map((e: any) => McpEnabledResource.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: McpSyncRequest): unknown {
+    const obj: any = {};
+    if (message.AccountId !== "") {
+      obj.AccountId = message.AccountId;
+    }
+    if (message.ServerId !== "") {
+      obj.ServerId = message.ServerId;
+    }
+    if (message.ServerUrl !== "") {
+      obj.ServerUrl = message.ServerUrl;
+    }
+    if (message.AuthType !== "") {
+      obj.AuthType = message.AuthType;
+    }
+    if (message.AuthSecret !== "") {
+      obj.AuthSecret = message.AuthSecret;
+    }
+    if (message.RepositoryId !== "") {
+      obj.RepositoryId = message.RepositoryId;
+    }
+    if (message.CreatedByUserId !== "") {
+      obj.CreatedByUserId = message.CreatedByUserId;
+    }
+    if (message.EnabledResources?.length) {
+      obj.EnabledResources = message.EnabledResources.map((e) => McpEnabledResource.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<McpSyncRequest>, I>>(base?: I): McpSyncRequest {
+    return McpSyncRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<McpSyncRequest>, I>>(object: I): McpSyncRequest {
+    const message = createBaseMcpSyncRequest();
+    message.AccountId = object.AccountId ?? "";
+    message.ServerId = object.ServerId ?? "";
+    message.ServerUrl = object.ServerUrl ?? "";
+    message.AuthType = object.AuthType ?? "";
+    message.AuthSecret = object.AuthSecret ?? "";
+    message.RepositoryId = object.RepositoryId ?? "";
+    message.CreatedByUserId = object.CreatedByUserId ?? "";
+    message.EnabledResources = object.EnabledResources?.map((e) => McpEnabledResource.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseMcpEnabledResource(): McpEnabledResource {
+  return { Uri: "", Name: "", MimeType: "" };
+}
+
+export const McpEnabledResource: MessageFns<McpEnabledResource> = {
+  encode(message: McpEnabledResource, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.Uri !== "") {
+      writer.uint32(10).string(message.Uri);
+    }
+    if (message.Name !== "") {
+      writer.uint32(18).string(message.Name);
+    }
+    if (message.MimeType !== "") {
+      writer.uint32(26).string(message.MimeType);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): McpEnabledResource {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMcpEnabledResource();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.Uri = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.Name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.MimeType = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): McpEnabledResource {
+    return {
+      Uri: isSet(object.Uri) ? globalThis.String(object.Uri) : "",
+      Name: isSet(object.Name) ? globalThis.String(object.Name) : "",
+      MimeType: isSet(object.MimeType) ? globalThis.String(object.MimeType) : "",
+    };
+  },
+
+  toJSON(message: McpEnabledResource): unknown {
+    const obj: any = {};
+    if (message.Uri !== "") {
+      obj.Uri = message.Uri;
+    }
+    if (message.Name !== "") {
+      obj.Name = message.Name;
+    }
+    if (message.MimeType !== "") {
+      obj.MimeType = message.MimeType;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<McpEnabledResource>, I>>(base?: I): McpEnabledResource {
+    return McpEnabledResource.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<McpEnabledResource>, I>>(object: I): McpEnabledResource {
+    const message = createBaseMcpEnabledResource();
+    message.Uri = object.Uri ?? "";
+    message.Name = object.Name ?? "";
+    message.MimeType = object.MimeType ?? "";
+    return message;
+  },
+};
+
+function createBaseMcpSyncResponse(): McpSyncResponse {
+  return { ServerId: "", Success: false, Error: "", ResourcesSynced: 0, DiscoveredResources: [] };
+}
+
+export const McpSyncResponse: MessageFns<McpSyncResponse> = {
+  encode(message: McpSyncResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ServerId !== "") {
+      writer.uint32(10).string(message.ServerId);
+    }
+    if (message.Success !== false) {
+      writer.uint32(16).bool(message.Success);
+    }
+    if (message.Error !== "") {
+      writer.uint32(26).string(message.Error);
+    }
+    if (message.ResourcesSynced !== 0) {
+      writer.uint32(32).int32(message.ResourcesSynced);
+    }
+    for (const v of message.DiscoveredResources) {
+      McpSyncDiscoveredResource.encode(v!, writer.uint32(42).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): McpSyncResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMcpSyncResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ServerId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.Success = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.Error = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.ResourcesSynced = reader.int32();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.DiscoveredResources.push(McpSyncDiscoveredResource.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): McpSyncResponse {
+    return {
+      ServerId: isSet(object.ServerId) ? globalThis.String(object.ServerId) : "",
+      Success: isSet(object.Success) ? globalThis.Boolean(object.Success) : false,
+      Error: isSet(object.Error) ? globalThis.String(object.Error) : "",
+      ResourcesSynced: isSet(object.ResourcesSynced) ? globalThis.Number(object.ResourcesSynced) : 0,
+      DiscoveredResources: globalThis.Array.isArray(object?.DiscoveredResources)
+        ? object.DiscoveredResources.map((e: any) => McpSyncDiscoveredResource.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: McpSyncResponse): unknown {
+    const obj: any = {};
+    if (message.ServerId !== "") {
+      obj.ServerId = message.ServerId;
+    }
+    if (message.Success !== false) {
+      obj.Success = message.Success;
+    }
+    if (message.Error !== "") {
+      obj.Error = message.Error;
+    }
+    if (message.ResourcesSynced !== 0) {
+      obj.ResourcesSynced = Math.round(message.ResourcesSynced);
+    }
+    if (message.DiscoveredResources?.length) {
+      obj.DiscoveredResources = message.DiscoveredResources.map((e) => McpSyncDiscoveredResource.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<McpSyncResponse>, I>>(base?: I): McpSyncResponse {
+    return McpSyncResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<McpSyncResponse>, I>>(object: I): McpSyncResponse {
+    const message = createBaseMcpSyncResponse();
+    message.ServerId = object.ServerId ?? "";
+    message.Success = object.Success ?? false;
+    message.Error = object.Error ?? "";
+    message.ResourcesSynced = object.ResourcesSynced ?? 0;
+    message.DiscoveredResources = object.DiscoveredResources?.map((e) => McpSyncDiscoveredResource.fromPartial(e)) ||
+      [];
+    return message;
+  },
+};
+
+function createBaseMcpSyncDiscoveredResource(): McpSyncDiscoveredResource {
+  return { Uri: "", Name: "", MimeType: "", Description: "" };
+}
+
+export const McpSyncDiscoveredResource: MessageFns<McpSyncDiscoveredResource> = {
+  encode(message: McpSyncDiscoveredResource, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.Uri !== "") {
+      writer.uint32(10).string(message.Uri);
+    }
+    if (message.Name !== "") {
+      writer.uint32(18).string(message.Name);
+    }
+    if (message.MimeType !== "") {
+      writer.uint32(26).string(message.MimeType);
+    }
+    if (message.Description !== "") {
+      writer.uint32(34).string(message.Description);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): McpSyncDiscoveredResource {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMcpSyncDiscoveredResource();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.Uri = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.Name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.MimeType = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.Description = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): McpSyncDiscoveredResource {
+    return {
+      Uri: isSet(object.Uri) ? globalThis.String(object.Uri) : "",
+      Name: isSet(object.Name) ? globalThis.String(object.Name) : "",
+      MimeType: isSet(object.MimeType) ? globalThis.String(object.MimeType) : "",
+      Description: isSet(object.Description) ? globalThis.String(object.Description) : "",
+    };
+  },
+
+  toJSON(message: McpSyncDiscoveredResource): unknown {
+    const obj: any = {};
+    if (message.Uri !== "") {
+      obj.Uri = message.Uri;
+    }
+    if (message.Name !== "") {
+      obj.Name = message.Name;
+    }
+    if (message.MimeType !== "") {
+      obj.MimeType = message.MimeType;
+    }
+    if (message.Description !== "") {
+      obj.Description = message.Description;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<McpSyncDiscoveredResource>, I>>(base?: I): McpSyncDiscoveredResource {
+    return McpSyncDiscoveredResource.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<McpSyncDiscoveredResource>, I>>(object: I): McpSyncDiscoveredResource {
+    const message = createBaseMcpSyncDiscoveredResource();
+    message.Uri = object.Uri ?? "";
+    message.Name = object.Name ?? "";
+    message.MimeType = object.MimeType ?? "";
+    message.Description = object.Description ?? "";
+    return message;
+  },
+};
+
+function createBaseListenForCommandsRequest(): ListenForCommandsRequest {
+  return {};
+}
+
+export const ListenForCommandsRequest: MessageFns<ListenForCommandsRequest> = {
+  encode(_: ListenForCommandsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ListenForCommandsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListenForCommandsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(_: any): ListenForCommandsRequest {
+    return {};
+  },
+
+  toJSON(_: ListenForCommandsRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListenForCommandsRequest>, I>>(base?: I): ListenForCommandsRequest {
+    return ListenForCommandsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ListenForCommandsRequest>, I>>(_: I): ListenForCommandsRequest {
+    const message = createBaseListenForCommandsRequest();
+    return message;
+  },
+};
+
+function createBaseSendCommandRequest(): SendCommandRequest {
+  return { Command: undefined };
+}
+
+export const SendCommandRequest: MessageFns<SendCommandRequest> = {
+  encode(message: SendCommandRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.Command !== undefined) {
+      Command.encode(message.Command, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SendCommandRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSendCommandRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.Command = Command.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SendCommandRequest {
+    return { Command: isSet(object.Command) ? Command.fromJSON(object.Command) : undefined };
+  },
+
+  toJSON(message: SendCommandRequest): unknown {
+    const obj: any = {};
+    if (message.Command !== undefined) {
+      obj.Command = Command.toJSON(message.Command);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SendCommandRequest>, I>>(base?: I): SendCommandRequest {
+    return SendCommandRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SendCommandRequest>, I>>(object: I): SendCommandRequest {
+    const message = createBaseSendCommandRequest();
+    message.Command = (object.Command !== undefined && object.Command !== null)
+      ? Command.fromPartial(object.Command)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseSendCommandResponse(): SendCommandResponse {
+  return { Success: false };
+}
+
+export const SendCommandResponse: MessageFns<SendCommandResponse> = {
+  encode(message: SendCommandResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.Success !== false) {
+      writer.uint32(8).bool(message.Success);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SendCommandResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSendCommandResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.Success = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SendCommandResponse {
+    return { Success: isSet(object.Success) ? globalThis.Boolean(object.Success) : false };
+  },
+
+  toJSON(message: SendCommandResponse): unknown {
+    const obj: any = {};
+    if (message.Success !== false) {
+      obj.Success = message.Success;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SendCommandResponse>, I>>(base?: I): SendCommandResponse {
+    return SendCommandResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SendCommandResponse>, I>>(object: I): SendCommandResponse {
+    const message = createBaseSendCommandResponse();
+    message.Success = object.Success ?? false;
     return message;
   },
 };

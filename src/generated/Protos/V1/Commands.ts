@@ -7,7 +7,7 @@
 /* eslint-disable */
 import Long from "long";
 import type { CallContext, CallOptions } from "nice-grpc-common";
-import { Command } from "./Models/CommandModels";
+import { Command, ListenForCommandsRequest, SendCommandRequest, SendCommandResponse } from "./Models/CommandModels";
 
 export const protobufPackage = "daisi.protos.v1";
 
@@ -24,6 +24,23 @@ export const HostCommandsProtoDefinition = {
       responseStream: true,
       options: {},
     },
+    /** Browser-compatible split RPCs (grpc-web can't do bidi streaming) */
+    listenForCommands: {
+      name: "ListenForCommands",
+      requestType: ListenForCommandsRequest,
+      requestStream: false,
+      responseType: Command,
+      responseStream: true,
+      options: {},
+    },
+    sendCommand: {
+      name: "SendCommand",
+      requestType: SendCommandRequest,
+      requestStream: false,
+      responseType: SendCommandResponse,
+      responseStream: false,
+      options: {},
+    },
   },
 } as const;
 
@@ -32,10 +49,28 @@ export interface HostCommandsProtoServiceImplementation<CallContextExt = {}> {
     request: AsyncIterable<Command>,
     context: CallContext & CallContextExt,
   ): ServerStreamingMethodResult<DeepPartial<Command>>;
+  /** Browser-compatible split RPCs (grpc-web can't do bidi streaming) */
+  listenForCommands(
+    request: ListenForCommandsRequest,
+    context: CallContext & CallContextExt,
+  ): ServerStreamingMethodResult<DeepPartial<Command>>;
+  sendCommand(
+    request: SendCommandRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<SendCommandResponse>>;
 }
 
 export interface HostCommandsProtoClient<CallOptionsExt = {}> {
   open(request: AsyncIterable<DeepPartial<Command>>, options?: CallOptions & CallOptionsExt): AsyncIterable<Command>;
+  /** Browser-compatible split RPCs (grpc-web can't do bidi streaming) */
+  listenForCommands(
+    request: DeepPartial<ListenForCommandsRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): AsyncIterable<Command>;
+  sendCommand(
+    request: DeepPartial<SendCommandRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<SendCommandResponse>;
 }
 
 export type AppCommandsProtoDefinition = typeof AppCommandsProtoDefinition;
