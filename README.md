@@ -1,4 +1,4 @@
-# DAISI has moved to [Daisi Git](https://git.daisi.ai/daisinet/), a free and fast git management studio that we built from scratch in C#.
+# DAISI has moved to [Daisi Git](https://git.daisi.ai/daisinet/), a fast git management studio that is included with your DAISI membership.
 ## This code base is no longer kept up to date here.
 ---
 
