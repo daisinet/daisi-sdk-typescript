@@ -78,3 +78,89 @@ message PeerShardTransferRequest {
     string TargetHostIp = 2;
     int32 TargetHostPort = 3;
 }
+
+message ExecuteToolRequest {
+    string ToolId = 1;
+    repeated ToolParam Parameters = 2;
+    string RequestingHostId = 3;
+    string SessionId = 4;
+    string RequestId = 5;
+}
+
+message ToolParam {
+    string Name = 1;
+    string Value = 2;
+}
+
+message ExecuteToolResponse {
+    bool Success = 1;
+    string Output = 2;
+    string ErrorMessage = 3;
+    string OutputMessage = 4;
+    string OutputFormat = 5;
+}
+
+message DownloadModelRequest {
+    AIModel Model = 1;
+}
+
+message DownloadModelResponse {
+    bool Success = 1;
+    string ErrorMessage = 2;
+}
+
+message RemoveModelRequest {
+    string ModelId = 1;
+    string ModelName = 2;
+    string FileName = 3;
+}
+
+message RemoveModelResponse {
+    bool Success = 1;
+    string ErrorMessage = 2;
+}
+
+// MCP Sync commands (sent from ORC to Host)
+message McpSyncRequest {
+    string AccountId = 1;
+    string ServerId = 2;
+    string ServerUrl = 3;
+    string AuthType = 4;
+    string AuthSecret = 5;
+    string RepositoryId = 6;
+    string CreatedByUserId = 7;
+    repeated McpEnabledResource EnabledResources = 8;
+}
+
+message McpEnabledResource {
+    string Uri = 1;
+    string Name = 2;
+    string MimeType = 3;
+}
+
+message McpSyncResponse {
+    string ServerId = 1;
+    bool Success = 2;
+    string Error = 3;
+    int32 ResourcesSynced = 4;
+    repeated McpSyncDiscoveredResource DiscoveredResources = 5;
+}
+
+message McpSyncDiscoveredResource {
+    string Uri = 1;
+    string Name = 2;
+    string MimeType = 3;
+    string Description = 4;
+}
+
+/* Browser-compatible command RPCs */
+message ListenForCommandsRequest {
+}
+
+message SendCommandRequest {
+    Command Command = 1;
+}
+
+message SendCommandResponse {
+    bool Success = 1;
+}

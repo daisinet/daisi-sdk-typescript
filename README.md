@@ -1,3 +1,9 @@
+# DAISI has moved to [Daisi Git](https://git.daisi.ai/daisinet/), a fast git management studio that is included with your DAISI membership.
+## This code base is no longer kept up to date here.
+---
+
+
+
 # @daisi/sdk
 
 TypeScript SDK for the [DAISI network](https://daisinet.com) — full parity with the .NET SDK, targeting both Node.js and browser environments.
